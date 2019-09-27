@@ -7,14 +7,12 @@ import matplotlib.pyplot as plt
 class Network:
     def __init__(self):
         self.training_data, self.test_data, self.training_labels, self.test_labels = self.get_moon_data()
-        print("Data Generated")
         self.input_size = self.training_data.shape[0]
         self.input_dimensions = self.training_data.shape[1]
         self.hidden_node_count = 4
         self.output_node_count = 1
         self.weights, self.bias = \
             self.initialize_weights(self.input_dimensions, self.output_node_count, self.hidden_node_count)
-        print("Weights Initialized")
         self.output1, self.activation1, self.output2,  self.activation2 = 0, 0, 0, 0
 
     def elu(self, input, a=2):
@@ -57,32 +55,32 @@ class Network:
         return cross_entropy_loss
 
     def back_propagation(self):
-        m = 1/self.input_size
-        self.derivative_output2 = self.activation2 - self.training_labels.reshape(-1, 1)
-        self.derivative_weights2 = m * np.dot(self.activation1.T, self.derivative_output2)
-        self.derivative_bias2 = m * np.sum(self.derivative_output2, axis=0, keepdims=True)
-        self.derivative_output1 = m * np.dot(self.derivative_output2, self.weights[2].T) * self.derivative_elu(self.output1)
-        self.derivative_weights1 = m * np.dot(self.training_data.T, self.derivative_output1)
-        self.derivative_bias1 = m * np.sum(self.derivative_output1, axis=0, keepdims=True)
+        m = 1/self.input_size   # regularizes the backprop step
+        derivative_output2 = self.activation2 - self.training_labels.reshape(-1, 1)
+        derivative_weights2 = m * np.dot(self.activation1.T, derivative_output2)
+        derivative_bias2 = m * np.sum(derivative_output2, axis=0, keepdims=True)
+        derivative_output1 = m * np.dot(derivative_output2, self.weights[2].T) * self.derivative_elu(self.output1)
+        derivative_weights1 = m * np.dot(self.training_data.T, derivative_output1)
+        derivative_bias1 = m * np.sum(derivative_output1, axis=0, keepdims=True)
 
         learning_rate = 0.01
-        self.weights[2] -= learning_rate * self.derivative_weights2
-        self.bias[2] -= learning_rate * self.derivative_bias2
-        self.weights[1] -= learning_rate * self.derivative_weights1
-        self.bias[1] -= learning_rate * self.derivative_bias1
+        self.weights[2] -= learning_rate * derivative_weights2
+        self.bias[2] -= learning_rate * derivative_bias2
+        self.weights[1] -= learning_rate * derivative_weights1
+        self.bias[1] -= learning_rate * derivative_bias1
 
 
 network = Network()
 network_output = network.forward_propagation()
 loss = network.calculate_loss(network_output)
 
-for i in range(1, 100000):
+for i in range(1, 50000):
     network.back_propagation()
     network_output = network.forward_propagation()
     loss = network.calculate_loss(network_output)
-    if i % 500 is 0:
-        print("Accuracy: " + str(1 - loss))
-print(1 - loss)
+    if i % 5000 == 0:
+        print("%" + str(int(i/500)))
+print("Final Loss: " + str(loss))
 
 
 
